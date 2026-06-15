@@ -30,7 +30,14 @@ class LoginViewModel : ViewModel() {
                 Firebase.auth.signInAnonymously().await()
                 _loginSuccess.value = true
             } catch (e: Exception) {
-                _errorMessage.value = e.localizedMessage ?: "Google Sign-In failed."
+                val message = e.localizedMessage ?: ""
+                if (message.contains("restricted", ignoreCase = true) || 
+                    message.contains("admin", ignoreCase = true) || 
+                    message.contains("sign-up is disabled", ignoreCase = true)) {
+                    _errorMessage.value = "Firebase Sign-Up is disabled.\n\nTo fix this:\n1. Open your Firebase Console.\n2. Navigate to Authentication -> Settings -> User actions.\n3. Toggle ON \"Enable create (sign-up)\".\n4. Under Sign-in method, toggle ON \"Anonymous\" provider."
+                } else {
+                    _errorMessage.value = e.localizedMessage ?: "Google Sign-In failed."
+                }
             } finally {
                 _loading.value = false
             }

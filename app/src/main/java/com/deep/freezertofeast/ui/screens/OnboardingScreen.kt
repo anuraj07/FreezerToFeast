@@ -32,36 +32,18 @@ import com.deep.freezertofeast.DarkCharcoal
 fun OnboardingScreen(
     onNavigateToLogin: () -> Unit
 ) {
+    val OnboardingBackgroundColor = Color(0xFFF4F3EF)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundColor)
+            .background(OnboardingBackgroundColor)
     ) {
-        // Minimalist Header (Without info icon)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Freezer-to-Feast",
-                fontFamily = FontFamily.Serif,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarkCharcoal,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 70.dp)
         ) {
-            // Hero Image Section with Fade Effect Overlay
+            // Hero Image Section with Fade Effect Overlay extending to the very top
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -82,7 +64,7 @@ fun OnboardingScreen(
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.05f))
                 )
-                // Vertical gradient fade overlay: transparent at the top to background color at the bottom
+                // Vertical gradient fade overlay: transparent at the top to off-white background color at the bottom
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -91,8 +73,8 @@ fun OnboardingScreen(
                                 colors = listOf(
                                     Color.Transparent,
                                     Color.Transparent,
-                                    BackgroundColor.copy(alpha = 0.5f),
-                                    BackgroundColor
+                                    OnboardingBackgroundColor.copy(alpha = 0.5f),
+                                    OnboardingBackgroundColor
                                 )
                             )
                         )
