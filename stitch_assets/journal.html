@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Freezer-to-Feast | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed-variant": "#424a34",
+                    "surface-container-highest": "#e3e2e0",
+                    "on-background": "#1a1c1a",
+                    "error": "#ba1a1a",
+                    "on-primary-container": "#abb499",
+                    "on-tertiary-fixed": "#181d0f",
+                    "outline": "#76786f",
+                    "background": "#faf9f6",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-container-high": "#e9e8e5",
+                    "primary-fixed": "#dde6c9",
+                    "on-secondary-container": "#676555",
+                    "secondary-fixed-dim": "#cbc7b4",
+                    "surface-container-low": "#f4f3f1",
+                    "on-secondary": "#ffffff",
+                    "surface-dim": "#dbdad7",
+                    "tertiary-fixed": "#dfe5cd",
+                    "inverse-on-surface": "#f2f1ee",
+                    "primary-fixed-dim": "#c1caae",
+                    "tertiary-fixed-dim": "#c3c9b2",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#434937",
+                    "surface-container": "#efeeeb",
+                    "primary-container": "#3e4631",
+                    "outline-variant": "#c6c7bd",
+                    "inverse-surface": "#2f312f",
+                    "secondary-fixed": "#e7e3cf",
+                    "on-surface": "#1a1c1a",
+                    "on-surface-variant": "#464840",
+                    "on-primary-fixed": "#171e0c",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#3f4534",
+                    "primary": "#28301c",
+                    "on-error": "#ffffff",
+                    "surface-tint": "#59614b",
+                    "secondary-container": "#e7e3cf",
+                    "secondary": "#615f4f",
+                    "inverse-primary": "#c1caae",
+                    "surface-bright": "#faf9f6",
+                    "surface": "#faf9f6",
+                    "tertiary": "#292f1f",
+                    "surface-variant": "#e3e2e0",
+                    "on-secondary-fixed-variant": "#494739",
+                    "on-tertiary-container": "#adb29c",
+                    "on-secondary-fixed": "#1d1c10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "unit": "8px",
+                    "element-gap": "16px",
+                    "container-padding-desktop": "64px",
+                    "container-padding-mobile": "24px",
+                    "section-gap": "80px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Playfair Display"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "display-lg": ["Playfair Display"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Playfair Display"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Playfair Display"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .quiet-shadow {
+            box-shadow: 0 32px 64px -12px rgba(62, 70, 49, 0.05);
+        }
+        .grain-overlay {
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+            opacity: 0.03;
+            pointer-events: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen relative">
+<div class="fixed inset-0 grain-overlay z-50"></div>
+<!-- Top Navigation Bar -->
+<header class="bg-background flex justify-between items-center w-full px-container-padding-mobile md:px-container-padding-desktop h-20 fixed top-0 z-40 transition-colors duration-500">
+<div class="flex items-center gap-4">
+<button class="text-primary hover:bg-surface-container-low transition-colors duration-500 p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-display-lg text-headline-md md:text-display-lg text-primary italic tracking-tight">Freezer-to-Feast</h1>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-8 text-on-surface-variant font-label-md tracking-widest uppercase">
+<a class="text-primary hover:text-primary transition-colors" href="#">Inventory</a>
+<a class="hover:text-primary transition-colors" href="#">Plan</a>
+<a class="hover:text-primary transition-colors" href="#">Nourish</a>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A professional, high-end portrait of a sophisticated man with a calm expression, wearing a neutral-toned linen shirt. The background is a soft-focus minimalist interior with warm, natural sunlight. The image is clean and elegant, adhering to a quiet luxury aesthetic with organic textures and a muted color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDVVWBZXmRfXHkMPTW2OG3XUV_YglgBjI8IY-TMXljZNiZZz-gjORuJSPnG9uMPKO_xSImSoj9IbKnwoc8E2UfV5wNYVoQEy-aTHpcc5l9-f644Pb1ZAsdjN1_Y7TBAcYxillaCDuCqFBeP4y3kguKfwCGVBg_bK1jBXMIC7-JxieXRcXV1FGUo7As5OnvN7q_-SOQhfDPj7N9-FsTjPHzNmqU96wzEBv-GO24QoCLcvD4lVKM_LLO-URY2t_p3IehOJWAUHLVs7k"/>
+</div>
+</div>
+</header>
+<main class="pt-32 pb-40 px-container-padding-mobile md:px-container-padding-desktop max-w-7xl mx-auto">
+<!-- Personalized Greeting -->
+<section class="mb-section-gap">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-2">
+                A morning of mindfulness, <span class="italic font-normal">Anuraj</span>
+</h2>
+<p class="text-on-surface-variant font-body-lg opacity-70">Today is an invitation to nourish your essence.</p>
+</section>
+<!-- Meal Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-section-gap">
+<!-- Nashta (Logged) -->
+<div class="group cursor-pointer">
+<div class="flex justify-between items-end mb-4 px-2">
+<span class="font-label-md uppercase tracking-[0.2em] text-on-surface-variant/60">Nashta</span>
+<span class="font-label-sm text-primary/40 italic">Logged</span>
+</div>
+<div class="relative aspect-[4/5] overflow-hidden rounded-xl quiet-shadow transition-transform duration-700 ease-in-out hover:scale-[1.01]">
+<img alt="Signature Masala Omelette" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" data-alt="A gourmet Masala Omelette served on a handmade ceramic plate. The lighting is soft morning sunlight casting long, gentle shadows. Garnished with fresh micro-greens and a sprinkle of organic spices. The setting is a minimalist wooden table with a linen napkin nearby, emphasizing high-end culinary craftsmanship and a calm, healthy mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChDXktoApHYGmhEuQIz_qmn6kxqBnJbldT_fx-SXSPe2bw4fYyqiBxskVaM6aqeGjuYIk5wYCNXur_3qDGtt4dgqZ3XSMPPUn6_7prlc3O919pH2lbOe2OeQaTR8KpOkQxTKDTJetgjfoOV4-G9Rw5t28LHTRrLboAI0LmezXFySIrv4-CoYoR0__w9cn59kHnLPP9LCsohKy4DyUQtVJwjfAuWDESC7ddN7JUU8LyaBCWjaoFUIqFAQic3zIGKn3W1lf2lQFLNV0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent opacity-60"></div>
+<div class="absolute bottom-0 left-0 p-8 w-full">
+<h3 class="font-headline-md text-white mb-2">Signature Masala Omelette</h3>
+<div class="flex gap-4 text-white/90 font-label-sm tracking-wide">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="local_fire_department">local_fire_department</span>
+                                320 kcal
+                            </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span>
+                                12 min prep
+                            </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Dopahar ka Khaana (Empty) -->
+<div class="group">
+<div class="flex justify-between items-end mb-4 px-2">
+<span class="font-label-md uppercase tracking-[0.2em] text-on-surface-variant/60">Dopahar ka Khaana</span>
+</div>
+<div class="aspect-[4/5] rounded-xl border border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center p-12 text-center transition-all duration-500 hover:bg-secondary-container/20 group-pointer">
+<div class="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-6 quiet-shadow group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="center_focus_weak">center_focus_weak</span>
+</div>
+<p class="font-headline-md text-primary/80 mb-2">A fresh harvest awaits</p>
+<p class="font-body-md text-on-surface-variant/60">Tap to scan your ingredients</p>
+</div>
+</div>
+<!-- Raat ka Khaana (Empty) -->
+<div class="group">
+<div class="flex justify-between items-end mb-4 px-2">
+<span class="font-label-md uppercase tracking-[0.2em] text-on-surface-variant/60">Raat ka Khaana</span>
+</div>
+<div class="aspect-[4/5] rounded-xl bg-secondary-container/10 flex flex-col items-center justify-center p-12 text-center transition-all duration-500 hover:bg-secondary-container/20">
+<div class="w-12 h-12 rounded-full border border-primary/10 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary/30 text-2xl" data-icon="spa">spa</span>
+</div>
+<p class="font-body-lg italic text-primary/50">Evening nourishment to come.</p>
+</div>
+</div>
+</div>
+<!-- Daily Ritual Progress Section -->
+<section class="max-w-3xl mx-auto border-t border-outline-variant/30 pt-16">
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+<div>
+<h4 class="font-label-md uppercase tracking-[0.3em] text-primary/60 mb-2">Daily Ritual</h4>
+<p class="font-headline-md text-primary">Nourishment Quality</p>
+</div>
+<div class="text-right">
+<span class="text-display-lg font-display-lg text-primary">84<span class="text-headline-md italic opacity-40">%</span></span>
+</div>
+</div>
+<div class="relative w-full h-[2px] bg-secondary-container/50 overflow-hidden">
+<div class="absolute left-0 top-0 h-full bg-primary-container transition-all duration-1000 ease-out" style="width: 84%"></div>
+</div>
+<div class="flex justify-between mt-6 text-on-surface-variant/50 font-label-sm tracking-widest uppercase">
+<span>Awareness</span>
+<span>Optimized</span>
+</div>
+<div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+<div class="text-center">
+<span class="block font-label-sm text-on-surface-variant/40 mb-1">Hydration</span>
+<span class="font-body-md text-primary">1.8 / 2.5L</span>
+</div>
+<div class="text-center">
+<span class="block font-label-sm text-on-surface-variant/40 mb-1">Proteins</span>
+<span class="font-body-md text-primary">62g</span>
+</div>
+<div class="text-center">
+<span class="block font-label-sm text-on-surface-variant/40 mb-1">Fiber</span>
+<span class="font-body-md text-primary">24g</span>
+</div>
+<div class="text-center">
+<span class="block font-label-sm text-on-surface-variant/40 mb-1">Vitality</span>
+<span class="font-body-md text-primary">High</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center px-gutter py-4 bg-surface-container-lowest shadow-[0_-8px_32px_rgba(40,48,28,0.05)] rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-primary bg-secondary-container/30 rounded-full px-6 py-2 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Inventory</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant/70 px-6 py-2 hover:text-primary transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Plan</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant/70 px-6 py-2 hover:text-primary transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="spa">spa</span>
+<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Nourish</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant/70 px-6 py-2 hover:text-primary transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-sm font-label-sm uppercase tracking-widest mt-1">Profile</span>
+</button>
+</nav>
+<!-- Contextual FAB (Aligned with Nourish/Inventory context) -->
+<button class="fixed bottom-24 right-8 md:bottom-12 md:right-12 w-16 h-16 bg-primary-container text-on-primary rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform duration-300 z-40">
+<span class="material-symbols-outlined text-3xl" data-icon="add" style="font-variation-settings: 'wght' 400;">add</span>
+</button>
+<script>
+        // Subtle scroll effect for Header
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-sm', 'bg-white/90', 'backdrop-blur-md');
+            } else {
+                header.classList.remove('shadow-sm', 'bg-white/90', 'backdrop-blur-md');
+            }
+        });
+
+        // Simple interaction for cards
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Potential for haptic-like animation or sound trigger
+            });
+        });
+    </script>
+</body></html>

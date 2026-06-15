@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Plus+Jakarta+Sans:wght@200..800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@100..900&amp;family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .ultra-ambient-shadow {
+            box-shadow: 0 32px 64px -12px rgba(62, 70, 49, 0.08);
+        }
+        .tonal-divider {
+            background: linear-gradient(90deg, transparent 0%, #c6c7bd 50%, transparent 100%);
+            height: 1px;
+            opacity: 0.3;
+        }
+        @keyframes subtle-float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+            100% { transform: translateY(0px); }
+        }
+        .float-animation {
+            animation: subtle-float 6s ease-in-out infinite;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary": "#ffffff",
+                      "on-primary-fixed-variant": "#424a34",
+                      "surface-container-highest": "#e3e2e0",
+                      "on-background": "#1a1c1a",
+                      "error": "#ba1a1a",
+                      "on-primary-container": "#abb499",
+                      "on-tertiary-fixed": "#181d0f",
+                      "outline": "#76786f",
+                      "background": "#faf9f6",
+                      "surface-container-lowest": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "surface-container-high": "#e9e8e5",
+                      "primary-fixed": "#dde6c9",
+                      "on-secondary-container": "#676555",
+                      "secondary-fixed-dim": "#cbc7b4",
+                      "surface-container-low": "#f4f3f1",
+                      "on-secondary": "#ffffff",
+                      "surface-dim": "#dbdad7",
+                      "tertiary-fixed": "#dfe5cd",
+                      "inverse-on-surface": "#f2f1ee",
+                      "primary-fixed-dim": "#c1caae",
+                      "tertiary-fixed-dim": "#c3c9b2",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed-variant": "#434937",
+                      "surface-container": "#efeeeb",
+                      "primary-container": "#3e4631",
+                      "outline-variant": "#c6c7bd",
+                      "inverse-surface": "#2f312f",
+                      "secondary-fixed": "#e7e3cf",
+                      "on-surface": "#1a1c1a",
+                      "on-surface-variant": "#464840",
+                      "on-primary-fixed": "#171e0c",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-container": "#3f4534",
+                      "primary": "#28301c",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#59614b",
+                      "secondary-container": "#e7e3cf",
+                      "secondary": "#615f4f",
+                      "inverse-primary": "#c1caae",
+                      "surface-bright": "#faf9f6",
+                      "surface": "#faf9f6",
+                      "tertiary": "#292f1f",
+                      "surface-variant": "#e3e2e0",
+                      "on-secondary-fixed-variant": "#494739",
+                      "on-tertiary-container": "#adb29c",
+                      "on-secondary-fixed": "#1d1c10"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "unit": "8px",
+                      "element-gap": "16px",
+                      "container-padding-desktop": "64px",
+                      "container-padding-mobile": "24px",
+                      "section-gap": "80px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": ["Playfair Display"],
+                      "body-md": ["Plus Jakarta Sans"],
+                      "display-lg": ["Playfair Display"],
+                      "label-md": ["Plus Jakarta Sans"],
+                      "body-lg": ["Plus Jakarta Sans"],
+                      "headline-lg": ["Playfair Display"],
+                      "label-sm": ["Plus Jakarta Sans"],
+                      "headline-md": ["Playfair Display"]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                      "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "500"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col items-center justify-center overflow-hidden">
+<!-- Background Decoration -->
+<div class="fixed inset-0 z-0 opacity-40">
+
+</div>
+<!-- Main Content Context (Simulation of Background App) -->
+<main class="w-full max-w-5xl px-container-padding-mobile md:px-container-padding-desktop py-12 z-10 opacity-20 pointer-events-none">
+<header class="flex justify-between items-center mb-12">
+<h1 class="font-display-lg text-display-lg italic text-primary">Freezer-to-Feast</h1>
+<div class="w-12 h-12 rounded-full bg-secondary-container"></div>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="h-64 bg-surface-container-low rounded-xl"></div>
+<div class="h-64 bg-surface-container-low rounded-xl"></div>
+</div>
+</main>
+<!-- Overlay Backdrop -->
+<div class="fixed inset-0 bg-primary/20 backdrop-blur-sm z-40 transition-opacity duration-700 ease-in-out"></div>
+<!-- Ingredient Verification Sheet (Modal) -->
+<div class="fixed inset-x-0 bottom-0 md:inset-x-auto md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:max-w-xl z-50 bg-background md:rounded-3xl rounded-t-[40px] ultra-ambient-shadow overflow-hidden transform transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]" id="verification-sheet">
+<!-- Sheet Handle (Mobile) -->
+<div class="md:hidden flex justify-center py-4">
+<div class="w-12 h-1 bg-outline-variant rounded-full opacity-40"></div>
+</div>
+<div class="px-gutter pb-gutter md:p-12">
+<!-- Header Section -->
+<header class="text-center mb-10">
+<div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-fixed mb-6 float-animation">
+<span class="material-symbols-outlined text-primary" data-icon="restaurant">restaurant</span>
+</div>
+<p class="font-headline-md text-headline-md text-primary leading-tight">
+                    The kitchen has identified <br/> 4 exquisite items
+                </p>
+<div class="tonal-divider mt-8 w-1/3 mx-auto"></div>
+</header>
+<!-- Verification Content -->
+<div class="space-y-10">
+<!-- Perishables Group -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<span class="text-label-sm font-label-sm uppercase tracking-widest text-on-surface-variant/60">Perishables</span>
+<span class="text-label-sm font-label-sm text-primary italic">Fresh Harvest</span>
+</div>
+<div class="flex flex-wrap gap-3">
+<div class="flex items-center gap-3 px-5 py-3 rounded-full bg-secondary-container/30 border border-primary/5 hover:bg-secondary-container/50 transition-colors duration-300">
+<span class="text-body-md font-body-md text-primary">Bhindi</span>
+<span class="material-symbols-outlined text-primary/40 text-[18px]" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex items-center gap-3 px-5 py-3 rounded-full bg-secondary-container/30 border border-primary/5 hover:bg-secondary-container/50 transition-colors duration-300">
+<span class="text-body-md font-body-md text-primary">Palak</span>
+<span class="material-symbols-outlined text-primary/40 text-[18px]" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex items-center gap-3 px-5 py-3 rounded-full bg-secondary-container/30 border border-primary/5 hover:bg-secondary-container/50 transition-colors duration-300">
+<span class="text-body-md font-body-md text-primary">Tomatoes</span>
+<span class="material-symbols-outlined text-primary/40 text-[18px]" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+</section>
+<!-- Proteins Group -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<span class="text-label-sm font-label-sm uppercase tracking-widest text-on-surface-variant/60">Proteins</span>
+</div>
+<div class="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-secondary-container/30 border border-primary/5 hover:bg-secondary-container/50 transition-colors duration-300">
+<span class="text-body-md font-body-md text-primary">Fresh Paneer</span>
+<span class="material-symbols-outlined text-primary/40 text-[18px]" data-icon="check_circle">check_circle</span>
+</div>
+</section>
+<!-- Staples Accordion -->
+<section class="border-t border-outline-variant/20 pt-6">
+<button class="flex items-center justify-between w-full group" id="pantry-trigger">
+<span class="text-label-md font-label-md text-primary tracking-normal">Pantry Foundations</span>
+<span class="material-symbols-outlined text-primary transform transition-transform duration-500" data-icon="expand_more" id="accordion-icon">expand_more</span>
+</button>
+<div class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out" id="pantry-content">
+<div class="py-6 grid grid-cols-2 gap-4">
+<div class="flex items-center gap-2 text-on-surface-variant/80 text-body-md">
+<span class="w-1 h-1 rounded-full bg-primary/30"></span>
+                                Cumin Seeds
+                            </div>
+<div class="flex items-center gap-2 text-on-surface-variant/80 text-body-md">
+<span class="w-1 h-1 rounded-full bg-primary/30"></span>
+                                Himalayan Salt
+                            </div>
+<div class="flex items-center gap-2 text-on-surface-variant/80 text-body-md">
+<span class="w-1 h-1 rounded-full bg-primary/30"></span>
+                                Ghee
+                            </div>
+<div class="flex items-center gap-2 text-on-surface-variant/80 text-body-md">
+<span class="w-1 h-1 rounded-full bg-primary/30"></span>
+                                Turmeric
+                            </div>
+</div>
+</div>
+</section>
+</div>
+<!-- Primary CTA -->
+<footer class="mt-12">
+<button class="w-full bg-primary-container text-secondary-fixed py-6 rounded-2xl flex items-center justify-center gap-4 group hover:bg-primary transition-all duration-500 transform active:scale-[0.98]">
+<span class="text-label-md font-label-md uppercase tracking-[0.2em] font-bold">Craft Recipes</span>
+<span class="material-symbols-outlined transform group-hover:translate-x-1 transition-transform duration-500" data-icon="arrow_right_alt">arrow_right_alt</span>
+</button>
+<button class="w-full mt-4 py-2 text-label-sm font-label-sm text-on-surface-variant/50 hover:text-on-surface-variant transition-colors duration-300">
+                    Edit Selection
+                </button>
+</footer>
+</div>
+</div>
+<!-- Floating Atmosphere Assets (Optional Premium Touch) -->
+<div class="fixed top-20 left-20 w-32 h-32 rounded-full bg-tertiary-fixed-dim/20 blur-3xl"></div>
+<div class="fixed bottom-40 right-20 w-64 h-64 rounded-full bg-primary-fixed-dim/10 blur-[100px]"></div>
+<script>
+        // Micro-interactions for the accordion
+        const trigger = document.getElementById('pantry-trigger');
+        const content = document.getElementById('pantry-content');
+        const icon = document.getElementById('accordion-icon');
+
+        trigger.addEventListener('click', () => {
+            const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+            
+            if (isOpen) {
+                content.style.maxHeight = '0px';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                icon.style.transform = 'rotate(180deg)';
+            }
+        });
+
+        // Entrance animation
+        window.addEventListener('load', () => {
+            const sheet = document.getElementById('verification-sheet');
+            sheet.style.opacity = '0';
+            sheet.style.transform = 'translateY(100%)';
+            if (window.innerWidth >= 768) {
+                sheet.style.transform = 'translate(-50%, -40%) scale(0.95)';
+            }
+
+            setTimeout(() => {
+                sheet.style.opacity = '1';
+                if (window.innerWidth < 768) {
+                    sheet.style.transform = 'translateY(0)';
+                } else {
+                    sheet.style.transform = 'translate(-50%, -50%) scale(1)';
+                }
+            }, 100);
+        });
+    </script>
+</body></html>

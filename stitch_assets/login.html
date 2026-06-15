@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Freezer-to-Feast | Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline": "#76786f",
+                    "outline-variant": "#c6c7bd",
+                    "on-secondary-fixed": "#1d1c10",
+                    "on-surface": "#1a1c1a",
+                    "surface-container-high": "#e9e8e5",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#cbc7b4",
+                    "on-background": "#1a1c1a",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#f2f1ee",
+                    "background": "#faf9f6",
+                    "secondary-fixed": "#e7e3cf",
+                    "on-primary-fixed": "#171e0c",
+                    "on-primary-container": "#abb499",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#c3c9b2",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "tertiary": "#292f1f",
+                    "primary-fixed": "#dde6c9",
+                    "on-tertiary-fixed-variant": "#434937",
+                    "inverse-surface": "#2f312f",
+                    "on-tertiary-fixed": "#181d0f",
+                    "surface-container-low": "#f4f3f1",
+                    "surface-bright": "#faf9f6",
+                    "on-primary-fixed-variant": "#424a34",
+                    "error-container": "#ffdad6",
+                    "primary-container": "#3e4631",
+                    "surface-dim": "#dbdad7",
+                    "primary-fixed-dim": "#c1caae",
+                    "on-secondary-container": "#676555",
+                    "surface-container": "#efeeeb",
+                    "secondary-container": "#e7e3cf",
+                    "primary": "#28301c",
+                    "tertiary-fixed": "#dfe5cd",
+                    "on-surface-variant": "#464840",
+                    "on-error": "#ffffff",
+                    "surface": "#faf9f6",
+                    "surface-variant": "#e3e2e0",
+                    "surface-tint": "#59614b",
+                    "secondary": "#615f4f",
+                    "surface-container-highest": "#e3e2e0",
+                    "inverse-primary": "#c1caae",
+                    "tertiary-container": "#3f4534",
+                    "on-tertiary-container": "#adb29c",
+                    "on-secondary-fixed-variant": "#494739"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "container-padding-desktop": "64px",
+                    "element-gap": "16px",
+                    "container-padding-mobile": "24px",
+                    "section-gap": "80px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "headline-md": ["Playfair Display"],
+                    "headline-lg-mobile": ["Playfair Display"],
+                    "headline-lg": ["Playfair Display"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "display-lg": ["Playfair Display"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #faf9f6; /* Surface/Background */
+            color: #28301c; /* Primary */
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .input-focus-effect:focus-within {
+            background-color: rgba(231, 227, 207, 0.3); /* secondary-container/30 */
+        }
+        .ambient-lift {
+            box-shadow: 0 32px 64px rgba(62, 70, 49, 0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-hidden selection:bg-secondary-container">
+<!-- Subtle Background Atmosphere -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute top-[-10%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-secondary-container/10 blur-[120px]"></div>
+<div class="absolute bottom-[-10%] left-[-5%] w-[30vw] h-[30vw] rounded-full bg-primary-fixed/20 blur-[100px]"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-10 flex min-h-screen flex-col items-center justify-center px-container-padding-mobile md:px-container-padding-desktop">
+<div class="w-full max-w-[440px] flex flex-col items-center">
+<!-- Branding -->
+<header class="mb-section-gap text-center space-y-4">
+<h1 class="font-display-lg text-display-lg tracking-tight text-primary">
+                    Freezer-to-Feast
+                </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant opacity-80 max-w-[320px] mx-auto italic">
+                    Welcome back
+                </p>
+</header>
+<!-- Login Form -->
+<form action="#" class="w-full space-y-8">
+<div class="space-y-6">
+<!-- Email Field -->
+<div class="relative group input-focus-effect transition-all duration-500 rounded-xl px-4 py-2 border-b border-outline-variant/30">
+<label class="block font-label-sm text-label-sm uppercase tracking-widest text-outline mb-1" for="email">
+                            Email
+                        </label>
+<input class="block w-full border-0 bg-transparent p-0 text-primary placeholder:text-outline-variant focus:ring-0 font-body-md text-body-md transition-all duration-300" id="email" name="email" placeholder="your@essence.com" required="" type="email"/>
+</div>
+<!-- Password Field -->
+<div class="relative group input-focus-effect transition-all duration-500 rounded-xl px-4 py-2 border-b border-outline-variant/30">
+<div class="flex justify-between items-end">
+<label class="block font-label-sm text-label-sm uppercase tracking-widest text-outline mb-1" for="password">
+                                Password
+                            </label>
+<a class="font-label-sm text-label-sm text-outline-variant hover:text-primary transition-colors mb-1 duration-300" href="#">
+                                Forgot Password
+                            </a>
+</div>
+<input class="block w-full border-0 bg-transparent p-0 text-primary placeholder:text-outline-variant focus:ring-0 font-body-md text-body-md transition-all duration-300" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="pt-4">
+<button class="w-full h-14 bg-primary-container text-secondary-fixed font-label-md text-label-md tracking-widest uppercase rounded-full ambient-lift hover:opacity-90 active:scale-[0.98] transition-all duration-500 ease-in-out flex items-center justify-center gap-3" type="submit">
+                        Enter the Kitchen
+                        <span class="material-symbols-outlined text-[18px]">arrow_right_alt</span>
+</button>
+</div>
+</form>
+<!-- Secondary Interactions -->
+<footer class="mt-12 w-full flex flex-col items-center space-y-8">
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-2 font-label-sm text-label-sm text-outline hover:text-primary transition-colors duration-300 group">
+<span class="material-symbols-outlined text-[20px] opacity-60 group-hover:opacity-100">fingerprint</span>
+                        Biometric Login
+                    </button>
+<div class="h-4 w-[1px] bg-outline-variant/40"></div>
+<button class="font-label-sm text-label-sm text-outline hover:text-primary transition-colors duration-300">
+                        Create Account
+                    </button>
+</div>
+<!-- Decorative Element -->
+<div class="pt-8 opacity-20">
+<div class="w-12 h-[1px] bg-primary"></div>
+</div>
+</footer>
+</div>
+<!-- Atmospheric Side Image (Visible on Desktop) -->
+<div class="hidden lg:block fixed left-0 top-0 bottom-0 w-[20vw] overflow-hidden opacity-40">
+<img alt="Minimalist Kitchen Herb" class="h-full w-full object-cover grayscale brightness-110" data-alt="A macro close-up photograph of a single organic rosemary sprig lying on a matte beige marble surface. The lighting is extremely soft and diffused, creating an ethereal and minimalist aesthetic with high-key whites and soft champagne tones. The depth of field is shallow, blurring the background into a creamy texture. This visual perfectly captures the quiet luxury and artisanal focus of a premium culinary wellness brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDDStnkWdzWHXQvesABj8vj-OCYmz6WVKh-jv2nj71rVyJwCvIpemoE-Qb4CWrf3AjRlq4w_1uFx1MTuKBVxGqjezrXDdr_RW1jMAMwPcW5U3dqSXVZB5HPPP_W8Hy6L4U3sw3SukGRPFNStuCD_PMwXnXNWcWFNguNCqq9Oc-0aB9hibXV7LgWSIRwcc8kt3Pylcq4VVuKaM3rBTMmJn4RYFNMZIWACzXjrcmRtxNSCumJzqcw1_0JQ03GDR3WvlLmdDGGHW6E6Q"/>
+</div>
+<div class="hidden lg:block fixed right-0 top-0 bottom-0 w-[20vw] overflow-hidden opacity-40">
+<img alt="Fresh Organic Ingredients" class="h-full w-full object-cover grayscale brightness-110" data-alt="A high-angle professional food photograph of fresh whole garlic cloves and artisanal sea salt crystals scattered artfully on a light wooden surface. The image is bathed in bright, natural morning light, creating crisp highlights and long, soft shadows. The color palette is limited to muted creams, whites, and pale wood grains, emphasizing purity and high-end ingredient quality in a minimalist kitchen setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxQco34hMOA_pTew9Y67gqXBWCyvbPGbdGEKMqHalRFaqzXtmk-5K1S_UUP508As7PE-_B5Z3VdVaBl8Ws9I5I2JGVxTlDrqqu94aNB8-ar2AiEc0dQ7jFkCqCfCj_K1sZUjRWpa307IhL5D3PaxcNYLNmI_m973LvgnF0Gshff-H1mHKahvQsaRi33C1gnbroxdnW9aCKHkmYEkNSXDnshO8l1lSp-M_88X8mQn05m-mHRtJbJpjXuuqc5xDpjC-7apF6eA8OWk8"/>
+</div>
+</main>
+<script>
+        // Simple micro-interaction for input fields
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('border-primary');
+                input.parentElement.classList.remove('border-outline-variant/30');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('border-primary');
+                input.parentElement.classList.add('border-outline-variant/30');
+            });
+        });
+
+        // Slow hover effect for the button
+        const btn = document.querySelector('button[type="submit"]');
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            btn.style.setProperty('--x', `${x}px`);
+            btn.style.setProperty('--y', `${y}px`);
+        });
+    </script>
+</body></html>
