@@ -55,7 +55,7 @@ class ProfileViewModel : ViewModel() {
         val user = Firebase.auth.currentUser ?: return
         viewModelScope.launch {
             try {
-                val document = Firebase.firestore.collection("users").document(user.uid).get().await()
+                val document = Firebase.firestore.collection("freezer_to_feast").document("app").collection("users").document(user.uid).get().await()
                 if (document.exists()) {
                     _name.value = document.getString("name") ?: ""
                     _selectedDiet.value = document.getString("dietaryFocus") ?: "Balanced"
@@ -87,7 +87,7 @@ class ProfileViewModel : ViewModel() {
                     "staples" to _staples.value,
                     "createdAt" to com.google.firebase.Timestamp.now()
                 )
-                db.collection("users").document(user.uid).set(profileMap).await()
+                db.collection("freezer_to_feast").document("app").collection("users").document(user.uid).set(profileMap).await()
                 _saveSuccess.value = true
             } catch (e: Exception) {
                 // Proceed even if Firestore save fails to keep UX flowing in dev

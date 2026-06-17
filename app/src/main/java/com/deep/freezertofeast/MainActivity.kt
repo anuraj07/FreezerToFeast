@@ -13,8 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import com.deep.freezertofeast.ui.theme.FreezerToFeastTheme
 import com.deep.freezertofeast.ui.screens.OnboardingScreen
 import com.deep.freezertofeast.ui.screens.LoginScreen
-import com.deep.freezertofeast.ui.screens.ProfileScreen
-import com.deep.freezertofeast.ui.screens.JournalScreen
+import com.deep.freezertofeast.ui.screens.MainTabContainer
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -28,7 +27,7 @@ class MainActivity : ComponentActivity() {
 
                 // Determine start destination based on authentication status
                 val currentUser = Firebase.auth.currentUser
-                val startDestination = if (currentUser != null) "journal" else "onboarding"
+                val startDestination = if (currentUser != null) "main" else "onboarding"
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -48,26 +47,14 @@ class MainActivity : ComponentActivity() {
                         composable("login") {
                             LoginScreen(
                                 onLoginSuccess = {
-                                    navController.navigate("profile") {
+                                    navController.navigate("main") {
                                         popUpTo("onboarding") { inclusive = true }
                                     }
-                                },
-                                onNavigateBack = {
-                                    navController.popBackStack()
                                 }
                             )
                         }
-                        composable("profile") {
-                            ProfileScreen(
-                                onProfileSaved = {
-                                    navController.navigate("journal") {
-                                        popUpTo("profile") { inclusive = true }
-                                    }
-                                }
-                            )
-                        }
-                        composable("journal") {
-                            JournalScreen(
+                        composable("main") {
+                            MainTabContainer(
                                 onSignOut = {
                                     Firebase.auth.signOut()
                                     navController.navigate("onboarding") {

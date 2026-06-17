@@ -1,5 +1,6 @@
 package com.deep.freezertofeast.ui.viewmodels
 
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.deep.freezertofeast.MealData
@@ -36,6 +37,9 @@ class JournalViewModel(
     private val _loggedMeals = MutableStateFlow<Map<String, MealData>>(emptyMap())
     val loggedMeals: StateFlow<Map<String, MealData>> = _loggedMeals.asStateFlow()
 
+    private val _userName = MutableStateFlow("Explorer")
+    val userName: StateFlow<String> = _userName.asStateFlow()
+
     init {
         loadLoggedMeals()
     }
@@ -55,7 +59,21 @@ class JournalViewModel(
         val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         viewModelScope.launch {
             try {
-                val doc = Firebase.firestore.collection("users")
+                // Load profile name for personalized greeting
+                val profileDoc = Firebase.firestore.collection("freezer_to_feast")
+                    .document("app")
+                    .collection("users")
+                    .document(user.uid)
+                    .get()
+                    .await()
+                if (profileDoc.exists()) {
+                    _userName.value = profileDoc.getString("name") ?: "Explorer"
+                }
+
+                // Load daily meals logged
+                val doc = Firebase.firestore.collection("freezer_to_feast")
+                    .document("app")
+                    .collection("users")
                     .document(user.uid)
                     .collection("daily_meals")
                     .document(currentDate)
@@ -101,5 +119,21 @@ class JournalViewModel(
                 }
             }
         }
+    }
+
+    fun requestRecipeWithImage(bitmap: Bitmap, slot: String) {
+        viewModelScope.launch {
+            repository.generateAndLogMealWithImage(bitmap, slot).collectLatest { resource ->
+                _statusResource.value = resource
+                if (resource is Resource.Success) {
+                    _generatedRecipe.value = resource.data
+                    loadLoggedMeals()
+                }
+            }
+        }
+    }
+
+    fun resetStatus() {
+        _statusResource.value = null
     }
 }
