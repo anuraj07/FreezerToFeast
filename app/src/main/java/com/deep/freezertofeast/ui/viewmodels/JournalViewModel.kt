@@ -261,6 +261,10 @@ class JournalViewModel(
         if (input.isBlank()) return
 
         viewModelScope.launch {
+            if (_loggedMeals.value.size >= 4 && !_loggedMeals.value.containsKey(slot)) {
+                _statusResource.value = Resource.Error("Daily AI recipe limit reached (4/4). Please check back tomorrow!")
+                return@launch
+            }
             repository.generateAndLogMeal(input, slot, dateString).collectLatest { resource ->
                 _statusResource.value = resource
                 if (resource is Resource.Success) {
@@ -276,6 +280,10 @@ class JournalViewModel(
         val dateString = _selectedDate.value.format(DateTimeFormatter.ISO_LOCAL_DATE)
         if (bitmaps.isEmpty()) return
         viewModelScope.launch {
+            if (_loggedMeals.value.size >= 4 && !_loggedMeals.value.containsKey(slot)) {
+                _statusResource.value = Resource.Error("Daily AI recipe limit reached (4/4). Please check back tomorrow!")
+                return@launch
+            }
             repository.generateAndLogMealWithImages(bitmaps, slot, dateString).collectLatest { resource ->
                 _statusResource.value = resource
                 if (resource is Resource.Success) {
