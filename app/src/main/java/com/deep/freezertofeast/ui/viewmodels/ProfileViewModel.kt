@@ -53,11 +53,14 @@ class ProfileViewModel : ViewModel() {
 
     fun loadProfile() {
         val user = Firebase.auth.currentUser ?: return
+        if (_name.value.isBlank()) {
+            _name.value = user.displayName ?: ""
+        }
         viewModelScope.launch {
             try {
                 val document = Firebase.firestore.collection("freezer_to_feast").document("app").collection("users").document(user.uid).get().await()
                 if (document.exists()) {
-                    _name.value = document.getString("name") ?: ""
+                    _name.value = document.getString("name") ?: user.displayName ?: ""
                     _selectedDiet.value = document.getString("dietaryFocus") ?: "Balanced"
                     @Suppress("UNCHECKED_CAST")
                     val list = document.get("staples") as? List<String>

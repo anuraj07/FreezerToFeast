@@ -8,12 +8,13 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.launch
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -28,7 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.deep.freezertofeast.Resource
 import com.deep.freezertofeast.ui.viewmodels.JournalViewModel
 import com.deep.freezertofeast.PrimaryGreen
@@ -50,6 +52,8 @@ import com.deep.freezertofeast.DarkCharcoal
 import com.deep.freezertofeast.OutlineColor
 import com.deep.freezertofeast.SurfaceContainer
 import com.deep.freezertofeast.MealData
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,44 +68,66 @@ fun JournalScreen(
     val generatedRecipe by viewModel.generatedRecipe.collectAsState()
     val loggedMeals by viewModel.loggedMeals.collectAsState()
     val userName by viewModel.userName.collectAsState()
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    val customSlotsList by viewModel.customSlots.collectAsState()
+    val waterGlasses by viewModel.waterGlasses.collectAsState()
 
-    val slots = listOf(
+    val dailyProtein by viewModel.dailyProtein.collectAsState()
+    val dailyFiber by viewModel.dailyFiber.collectAsState()
+    val dailyCarbs by viewModel.dailyCarbs.collectAsState()
+    val dailyCalories by viewModel.dailyCalories.collectAsState()
+
+    val baseSlots = listOf(
         "breakfast" to "Nashta",
         "lunch" to "Dopahar ka Khaana",
         "dinner" to "Raat ka Khaana"
     )
 
-    // Selection / camera dialog states
-    var showDialogForSlot by remember { mutableStateOf<String?>(null) }
+    val allSlots = remember(customSlotsList) {
+        baseSlots + customSlotsList.map { name ->
+            val id = name.trim().lowercase().replace(" ", "_")
+            id to name
+        }
+    }
+
+    // Active ingredient logging slot and picked image list state
+    var activeIngredientSlot by remember { mutableStateOf<String?>(null) }
+    val pickedImages = remember { mutableStateListOf<Bitmap>() }
+    var manualIngredientsText by remember { mutableStateOf("") }
+
+    // Dialog for adding custom slot
+    var showAddSlotDialog by remember { mutableStateOf(false) }
+    var newSlotName by remember { mutableStateOf("") }
+
+    // Dialog for recipe detail view
     var showRecipeDetail by remember { mutableStateOf<MealData?>(null) }
 
     // Launchers for picking images
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
-        val slot = showDialogForSlot
-        if (bitmap != null && slot != null) {
-            viewModel.requestRecipeWithImage(bitmap, slot)
+        if (bitmap != null) {
+            pickedImages.add(bitmap)
         }
-        showDialogForSlot = null
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        val slot = showDialogForSlot
-        if (uri != null && slot != null) {
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris: List<Uri> ->
+        uris.forEach { uri ->
             val bitmap = uriToBitmap(context, uri)
             if (bitmap != null) {
-                viewModel.requestRecipeWithImage(bitmap, slot)
+                pickedImages.add(bitmap)
             }
         }
-        showDialogForSlot = null
     }
 
-    // Manual Ingredient Input Text dialog
-    var showTextInputDialogForSlot by remember { mutableStateOf<String?>(null) }
-    var textInputIngredient by remember { mutableStateOf("") }
+    // Format selected date nicely
+    val formattedDate = when (selectedDate) {
+        LocalDate.now() -> "Today"
+        LocalDate.now().minusDays(1) -> "Yesterday"
+        else -> selectedDate.format(DateTimeFormatter.ofPattern("EEE, MMM dd, yyyy"))
+    }
 
     Box(
         modifier = Modifier
@@ -113,35 +139,26 @@ fun JournalScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Header bar matching journal.html
+            // Header bar matching journal.html (Removed Sign Out option)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp)
                     .padding(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 h1Branding()
-                Text(
-                    text = "Sign Out 🚪",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryGreen.copy(alpha = 0.7f),
-                    modifier = Modifier
-                        .clickable { onSignOut() }
-                        .padding(8.dp)
-                )
             }
 
-            // Personalized Greeting
+            // Personalized Greeting (Greets the user dynamically)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "A morning of mindfulness, Anuraj",
+                    text = "A morning of mindfulness, $userName",
                     fontFamily = FontFamily.Serif,
                     fontSize = 24.sp,
                     lineHeight = 30.sp,
@@ -157,16 +174,57 @@ fun JournalScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Meal slots grid
+            // Calendar Navigation Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { viewModel.selectPreviousDay() }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowLeft,
+                        contentDescription = "Previous Day",
+                        tint = PrimaryGreen
+                    )
+                }
+                
+                Text(
+                    text = formattedDate,
+                    fontFamily = FontFamily.SansSerif,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DarkCharcoal,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    textAlign = TextAlign.Center
+                )
+
+                IconButton(
+                    onClick = { viewModel.selectNextDay() }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowRight,
+                        contentDescription = "Next Day",
+                        tint = PrimaryGreen
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Meal slots list
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                slots.forEach { (slotId, slotName) ->
+                allSlots.forEach { (slotId, slotName) ->
                     val meal = loggedMeals[slotId]
 
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -205,19 +263,75 @@ fun JournalScreen(
                                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                             ) {
                                 Box(modifier = Modifier.fillMaxSize()) {
-                                    // Custom botanic abstract gradient representing the dish
+                                    if (meal.imageUrl.isNotEmpty()) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(meal.imageUrl)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = meal.recipeName,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(
+                                                    Brush.verticalGradient(
+                                                        colors = listOf(
+                                                            PrimaryGreen.copy(alpha = 0.1f),
+                                                            PrimaryGreen.copy(alpha = 0.7f)
+                                                        )
+                                                    )
+                                                )
+                                        )
+                                    }
+
+                                    // Gradient overlay to ensure text readability
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .background(
                                                 Brush.verticalGradient(
                                                     colors = listOf(
-                                                        PrimaryGreen.copy(alpha = 0.1f),
-                                                        PrimaryGreen.copy(alpha = 0.7f)
+                                                        Color.Transparent,
+                                                        Color.Black.copy(alpha = 0.8f)
                                                     )
                                                 )
                                             )
                                     )
+
+                                    // Macro overlay on top-right corner
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(12.dp)
+                                            .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "P: ${meal.protein}g",
+                                            color = Color.White,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "F: ${meal.fiber}g",
+                                            color = Color.White,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "C: ${meal.carbs}g",
+                                            color = Color.White,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+
                                     // Details overlay at the bottom
                                     Column(
                                         modifier = Modifier
@@ -245,7 +359,7 @@ fun JournalScreen(
                                                 )
                                                 Spacer(modifier = Modifier.width(4.dp))
                                                 Text(
-                                                    text = "320 kcal",
+                                                    text = "${meal.calories} kcal",
                                                     fontSize = 11.sp,
                                                     color = Color.White.copy(alpha = 0.9f)
                                                 )
@@ -280,7 +394,11 @@ fun JournalScreen(
                                         shape = RoundedCornerShape(16.dp)
                                     )
                                     .background(SurfaceContainer.copy(alpha = 0.3f))
-                                    .clickable { showDialogForSlot = slotId }
+                                    .clickable {
+                                        activeIngredientSlot = slotId
+                                        pickedImages.clear()
+                                        manualIngredientsText = ""
+                                    }
                                     .padding(24.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -313,7 +431,7 @@ fun JournalScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "Tap to take a picture of ingredients",
+                                        text = "Tap to add ingredients & images",
                                         fontSize = 12.sp,
                                         color = DarkCharcoal.copy(alpha = 0.5f)
                                     )
@@ -322,11 +440,59 @@ fun JournalScreen(
                         }
                     }
                 }
+
+                // Add Custom Meal Slot button
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(
+                            BorderStroke(1.dp, OutlineColor),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .background(SurfaceContainer.copy(alpha = 0.3f))
+                        .clickable { showAddSlotDialog = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add slot",
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Add Custom Meal Slot",
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DarkCharcoal
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(40.dp))
 
             // Daily Ritual Progress Section
+            val progressPercent = remember(dailyProtein, dailyFiber, dailyCalories) {
+                val proteinGoal = 60f
+                val fiberGoal = 25f
+                val caloriesGoal = 2000f
+                
+                val pProgress = if (dailyProtein > 0) (dailyProtein.toFloat() / proteinGoal) else 0f
+                val fProgress = if (dailyFiber > 0) (dailyFiber.toFloat() / fiberGoal) else 0f
+                val cProgress = if (dailyCalories > 0) (dailyCalories.toFloat() / caloriesGoal) else 0f
+                
+                val avg = (pProgress + fProgress + cProgress) / 3f
+                (avg.coerceIn(0f, 1f) * 100).toInt()
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -357,7 +523,7 @@ fun JournalScreen(
                         )
                     }
                     Text(
-                        text = "84%",
+                        text = "$progressPercent%",
                         fontSize = 32.sp,
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Bold,
@@ -369,7 +535,7 @@ fun JournalScreen(
 
                 // Progress Bar
                 LinearProgressIndicator(
-                    progress = 0.84f,
+                    progress = progressPercent.toFloat() / 100f,
                     color = PrimaryGreen,
                     trackColor = SurfaceContainer,
                     modifier = Modifier
@@ -409,41 +575,113 @@ fun JournalScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                         Text(text = "Hydration", fontSize = 10.sp, color = MutedGreen)
-                        Text(text = "1.8 / 2.5L", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkCharcoal)
+                        Text(text = "${waterGlasses * 250} ml", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkCharcoal)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                         Text(text = "Proteins", fontSize = 10.sp, color = MutedGreen)
-                        Text(text = "62g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkCharcoal)
+                        Text(text = "${dailyProtein}g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkCharcoal)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
                         Text(text = "Fiber", fontSize = 10.sp, color = MutedGreen)
-                        Text(text = "24g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkCharcoal)
+                        Text(text = "${dailyFiber}g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkCharcoal)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                        Text(text = "Vitality", fontSize = 10.sp, color = MutedGreen)
-                        Text(text = "High", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkCharcoal)
+                        Text(text = "Carbs", fontSize = 10.sp, color = MutedGreen)
+                        Text(text = "${dailyCarbs}g", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = DarkCharcoal)
+                    }
+                }
+
+                // Interactive Water Intake Tracker Card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceContainer.copy(alpha = 0.5f)),
+                    border = BorderStroke(1.dp, OutlineColor.copy(alpha = 0.5f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(PrimaryGreen.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Opacity,
+                                    contentDescription = "Water",
+                                    tint = PrimaryGreen,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "Water Intake Tracker",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = DarkCharcoal
+                                )
+                                Text(
+                                    text = "$waterGlasses glasses (${waterGlasses * 250} ml)",
+                                    fontSize = 12.sp,
+                                    color = DarkCharcoal.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            IconButton(
+                                onClick = { viewModel.updateWaterIntake(maxOf(0, waterGlasses - 1)) },
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(Color.White, CircleShape)
+                                    .border(1.dp, OutlineColor.copy(alpha = 0.3f), CircleShape)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Remove,
+                                    contentDescription = "Decrease water",
+                                    tint = DarkCharcoal,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            Text(
+                                text = "$waterGlasses",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = DarkCharcoal,
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            )
+                            IconButton(
+                                onClick = { viewModel.updateWaterIntake(waterGlasses + 1) },
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(Color.White, CircleShape)
+                                    .border(1.dp, OutlineColor.copy(alpha = 0.3f), CircleShape)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Increase water",
+                                    tint = DarkCharcoal,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(120.dp)) // Padding for bottom navbar & FAB
-        }
-
-        // Floating Action Button to scan ingredient from camera
-        LargeFloatingActionButton(
-            onClick = { showDialogForSlot = "lunch" }, // Defaults image scan to lunch
-            containerColor = PrimaryGreen,
-            contentColor = SecondaryYellow,
-            shape = CircleShape,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(24.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.CameraAlt,
-                contentDescription = "Analyze Ingredient",
-                modifier = Modifier.size(30.dp)
-            )
+            Spacer(modifier = Modifier.height(30.dp))
         }
 
         // 1. Loading Overlay Dialog
@@ -464,7 +702,7 @@ fun JournalScreen(
                         CircularProgressIndicator(color = PrimaryGreen)
                         Spacer(modifier = Modifier.height(20.dp))
                         Text(
-                            text = "Analyzing Ingredient Photo...",
+                            text = "Analyzing Ingredients...",
                             fontFamily = FontFamily.Serif,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
@@ -483,84 +721,227 @@ fun JournalScreen(
             }
         }
 
-        // 2. Picture Source Selection Dialog
-        if (showDialogForSlot != null) {
-            Dialog(onDismissRequest = { showDialogForSlot = null }) {
+        // 2. Unified Ingredient Logging Dialog (Supports Multiple Images + Manual Input)
+        if (activeIngredientSlot != null) {
+            val slotId = activeIngredientSlot!!
+            val displaySlotName = allSlots.firstOrNull { it.first == slotId }?.second ?: slotId
+
+            Dialog(onDismissRequest = {
+                activeIngredientSlot = null
+                pickedImages.clear()
+                manualIngredientsText = ""
+            }) {
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
-                            text = "Log Ingredient",
+                            text = "Log Ingredients for $displaySlotName",
                             fontFamily = FontFamily.Serif,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DarkCharcoal
+                            color = DarkCharcoal,
+                            textAlign = TextAlign.Center
                         )
                         Divider(color = OutlineColor.copy(alpha = 0.2f))
 
-                        Button(
-                            onClick = { cameraLauncher.launch() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(imageVector = Icons.Default.Camera, contentDescription = "Camera")
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = "Take Photo", color = SecondaryYellow)
+                        // Images display section
+                        Text(
+                            text = "Ingredients Images (${pickedImages.size} added)",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MutedGreen,
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+
+                        if (pickedImages.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp)
+                                    .border(BorderStroke(1.dp, OutlineColor), shape = RoundedCornerShape(12.dp))
+                                    .background(BackgroundColor),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No images added. Take photos or choose from gallery.",
+                                    fontSize = 11.sp,
+                                    color = DarkCharcoal.copy(alpha = 0.5f),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                pickedImages.forEachIndexed { index, bitmap ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(80.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .border(1.dp, OutlineColor, RoundedCornerShape(8.dp))
+                                    ) {
+                                        Image(
+                                            bitmap = bitmap.asImageBitmap(),
+                                            contentDescription = "Picked Image",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        // Delete button
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(4.dp)
+                                                .size(20.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.Black.copy(alpha = 0.6f))
+                                                .clickable { pickedImages.removeAt(index) },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Remove Image",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
 
-                        Button(
-                            onClick = { galleryLauncher.launch("image/*") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
-                            shape = RoundedCornerShape(12.dp)
+                        // Buttons row for Camera / Gallery
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(imageVector = Icons.Default.Photo, contentDescription = "Gallery")
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = "Choose from Gallery", color = SecondaryYellow)
+                            Button(
+                                onClick = { cameraLauncher.launch(null) },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.CameraAlt,
+                                        contentDescription = "Camera",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = SecondaryYellow
+                                    )
+                                    Text(text = "Camera", color = SecondaryYellow, fontSize = 12.sp)
+                                }
+                            }
+                            Button(
+                                onClick = { galleryLauncher.launch("image/*") },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Photo,
+                                        contentDescription = "Gallery",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = SecondaryYellow
+                                    )
+                                    Text(text = "Gallery", color = SecondaryYellow, fontSize = 12.sp)
+                                }
                             }
                         }
 
-                        TextButton(
-                            onClick = {
-                                textInputIngredient = ""
-                                showTextInputDialogForSlot = showDialogForSlot
-                                showDialogForSlot = null
-                            }
-                        ) {
-                            Text(
-                                text = "Or Enter Ingredients Manually",
-                                color = PrimaryGreen,
-                                fontWeight = FontWeight.Bold
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Manual Input
+                        Text(
+                            text = "Or Enter Ingredients Manually",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MutedGreen,
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+
+                        OutlinedTextField(
+                            value = manualIngredientsText,
+                            onValueChange = { manualIngredientsText = it },
+                            placeholder = { Text("e.g. Tomatoes, Paneer, Capsicum") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = PrimaryGreen,
+                                unfocusedBorderColor = OutlineColor,
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                                focusedTextColor = DarkCharcoal,
+                                unfocusedTextColor = DarkCharcoal,
+                                focusedPlaceholderColor = DarkCharcoal.copy(alpha = 0.5f),
+                                unfocusedPlaceholderColor = DarkCharcoal.copy(alpha = 0.5f)
                             )
-                        }
+                        )
 
-                        TextButton(
-                            onClick = { showDialogForSlot = null }
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Dialog CTA buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
                         ) {
-                            Text(text = "Cancel", color = DarkCharcoal.copy(alpha = 0.6f))
+                            TextButton(onClick = {
+                                activeIngredientSlot = null
+                                pickedImages.clear()
+                                manualIngredientsText = ""
+                            }) {
+                                Text(text = "Cancel", color = DarkCharcoal.copy(alpha = 0.6f))
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    val slot = activeIngredientSlot
+                                    if (slot != null) {
+                                        if (pickedImages.isNotEmpty()) {
+                                            viewModel.requestRecipeWithImages(pickedImages.toList(), slot)
+                                        } else if (manualIngredientsText.isNotBlank()) {
+                                            viewModel.updateRawInput(manualIngredientsText)
+                                            viewModel.updateSelectedSlot(slot)
+                                            viewModel.requestRecipe()
+                                        }
+                                    }
+                                    activeIngredientSlot = null
+                                    pickedImages.clear()
+                                    manualIngredientsText = ""
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                                enabled = pickedImages.isNotEmpty() || manualIngredientsText.isNotBlank(),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(text = "Suggest Recipe", color = SecondaryYellow)
+                            }
                         }
                     }
                 }
             }
         }
 
-        // 3. Text Input Dialog (Fallback)
-        if (showTextInputDialogForSlot != null) {
-            Dialog(onDismissRequest = { showTextInputDialogForSlot = null }) {
+        // 3. Add Custom Slot Dialog
+        if (showAddSlotDialog) {
+            Dialog(onDismissRequest = { showAddSlotDialog = false }) {
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -571,7 +952,7 @@ fun JournalScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
-                            text = "Enter Ingredients",
+                            text = "Add Custom Meal Slot",
                             fontFamily = FontFamily.Serif,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
@@ -580,16 +961,20 @@ fun JournalScreen(
                         Divider(color = OutlineColor.copy(alpha = 0.2f))
 
                         OutlinedTextField(
-                            value = textInputIngredient,
-                            onValueChange = { textInputIngredient = it },
-                            placeholder = { Text("e.g. Tomato, Paneer, Spinach...") },
+                            value = newSlotName,
+                            onValueChange = { newSlotName = it },
+                            placeholder = { Text("e.g. Evening Chai, Midnight Snack") },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = PrimaryGreen,
                                 unfocusedBorderColor = OutlineColor,
-                                focusedContainerColor = BackgroundColor,
-                                unfocusedContainerColor = BackgroundColor
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                                focusedTextColor = DarkCharcoal,
+                                unfocusedTextColor = DarkCharcoal,
+                                focusedPlaceholderColor = DarkCharcoal.copy(alpha = 0.5f),
+                                unfocusedPlaceholderColor = DarkCharcoal.copy(alpha = 0.5f)
                             )
                         )
 
@@ -597,23 +982,22 @@ fun JournalScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
-                            TextButton(onClick = { showTextInputDialogForSlot = null }) {
+                            TextButton(onClick = { showAddSlotDialog = false }) {
                                 Text(text = "Cancel", color = DarkCharcoal.copy(alpha = 0.6f))
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Button(
                                 onClick = {
-                                    val slot = showTextInputDialogForSlot
-                                    if (textInputIngredient.isNotBlank() && slot != null) {
-                                        viewModel.updateRawInput(textInputIngredient)
-                                        viewModel.updateSelectedSlot(slot)
-                                        viewModel.requestRecipe()
+                                    if (newSlotName.isNotBlank()) {
+                                        viewModel.addCustomSlot(newSlotName)
                                     }
-                                    showTextInputDialogForSlot = null
+                                    showAddSlotDialog = false
+                                    newSlotName = ""
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text(text = "Suggest", color = SecondaryYellow)
+                                Text(text = "Add Slot", color = SecondaryYellow)
                             }
                         }
                     }

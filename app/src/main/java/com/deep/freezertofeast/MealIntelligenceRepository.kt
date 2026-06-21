@@ -14,8 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.Json
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.net.URLEncoder
 
 class MealIntelligenceRepository {
 
@@ -30,14 +29,18 @@ class MealIntelligenceRepository {
             "steps" to Schema.array(
                 Schema.string(),
                 description = "Step-by-step instructions to prepare the recipe"
-            )
+            ),
+            "protein" to Schema.integer("Grams of protein in this single serving"),
+            "fiber" to Schema.integer("Grams of dietary fiber in this single serving"),
+            "carbs" to Schema.integer("Grams of carbohydrates in this single serving"),
+            "calories" to Schema.integer("Total calories in kcal in this single serving")
         )
     )
 
     private val generativeModel = Firebase.ai.generativeModel(
         modelName = "gemini-2.5-flash",
         systemInstruction = content {
-            text("You are an experienced Indian home chef. Suggest a suitable recipe based on the user's available ingredients. Assume that staples like oil, ghee, atta (wheat flour), rice, and basic masalas (salt, turmeric, red chili powder, cumin, mustard seeds, coriander powder) are always available in the kitchen. You must output the recipe strictly in JSON format conforming to the requested schema.")
+            text("You are an experienced Indian home chef. Suggest a suitable recipe based on the user's available ingredients. Assume that staples like oil, ghee, atta (wheat flour), rice, and basic masalas (salt, turmeric, red chili powder, cumin, mustard seeds, coriander powder) are always available in the kitchen. You must output the recipe strictly in JSON format conforming to the requested schema. Make sure you calculate realistic values for protein, fiber, carbs, and calories based on the ingredients used.")
         },
         generationConfig = generationConfig {
             responseMimeType = "application/json"
@@ -45,7 +48,7 @@ class MealIntelligenceRepository {
         }
     )
 
-    fun generateAndLogMeal(rawInput: String, mealSlot: String): Flow<Resource<MealData>> = flow {
+    fun generateAndLogMeal(rawInput: String, mealSlot: String, dateString: String): Flow<Resource<MealData>> = flow {
         emit(Resource.Loading)
 
         try {
@@ -71,15 +74,21 @@ class MealIntelligenceRepository {
                 throw IllegalArgumentException("Failed to parse JSON response from the model. Raw response: $jsonText", e)
             }
 
-            // 4. Format currentDate (YYYY-MM-DD)
-            val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+            // 4. Generate AI Image URL using Pollinations
+            val querySafe = URLEncoder.encode(mealData.recipeName, "UTF-8")
+            val generatedImageUrl = "https://image.pollinations.ai/prompt/gourmet%20culinary%20photo%20of%20${querySafe}%20served%20on%20ceramic%20plate%20natural%20lighting%20artistic%20minimalist"
 
             // 5. Build Firestore payload
             val mealDataMap = mapOf(
                 "recipeName" to mealData.recipeName,
                 "prepTime" to mealData.prepTime,
                 "ingredientsUsed" to mealData.ingredientsUsed,
-                "steps" to mealData.steps
+                "steps" to mealData.steps,
+                "protein" to mealData.protein,
+                "fiber" to mealData.fiber,
+                "carbs" to mealData.carbs,
+                "calories" to mealData.calories,
+                "imageUrl" to generatedImageUrl
             )
 
             val updatePayload = hashMapOf<String, Any>(
@@ -87,18 +96,18 @@ class MealIntelligenceRepository {
                 "timestamp" to FieldValue.serverTimestamp()
             )
 
-            // 6. Write directly to Firestore: freezer_to_feast/app/users/{userId}/daily_meals/{YYYY-MM-DD}
+            // 6. Write directly to Firestore: freezer_to_feast/app/users/{userId}/daily_meals/{dateString}
             Firebase.firestore.collection("freezer_to_feast")
                 .document("app")
                 .collection("users")
                 .document(userId)
                 .collection("daily_meals")
-                .document(currentDate)
+                .document(dateString)
                 .set(updatePayload, SetOptions.merge())
                 .await()
 
             // 7. Emit success
-            emit(Resource.Success(mealData))
+            emit(Resource.Success(mealData.copy(imageUrl = generatedImageUrl)))
 
         } catch (e: IllegalStateException) {
             emit(Resource.Error("Authentication or state error: ${e.localizedMessage}", e))
@@ -111,7 +120,7 @@ class MealIntelligenceRepository {
         }
     }
 
-    fun generateAndLogMealWithImage(bitmap: Bitmap, mealSlot: String): Flow<Resource<MealData>> = flow {
+    fun generateAndLogMealWithImages(bitmaps: List<Bitmap>, mealSlot: String, dateString: String): Flow<Resource<MealData>> = flow {
         emit(Resource.Loading)
 
         try {
@@ -123,8 +132,8 @@ class MealIntelligenceRepository {
             // 2. Call Gemini API client-side with image and text instruction
             val response = generativeModel.generateContent(
                 content {
-                    image(bitmap)
-                    text("Identify the main ingredient inside this photo of a freezer/fridge and suggest a suitable recipe using it. Also identify and list any side ingredients that would go well with it. Output in JSON format.")
+                    bitmaps.forEach { image(it) }
+                    text("Identify the main ingredients inside these photos of a freezer/fridge and suggest a suitable recipe using them. Also identify and list any side ingredients that would go well with it. Output in JSON format.")
                 }
             )
             
@@ -138,15 +147,21 @@ class MealIntelligenceRepository {
                 throw IllegalArgumentException("Failed to parse JSON response from the model. Raw response: $jsonText", e)
             }
 
-            // 4. Format currentDate (YYYY-MM-DD)
-            val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+            // 4. Generate AI Image URL using Pollinations
+            val querySafe = URLEncoder.encode(mealData.recipeName, "UTF-8")
+            val generatedImageUrl = "https://image.pollinations.ai/prompt/gourmet%20culinary%20photo%20of%20${querySafe}%20served%20on%20ceramic%20plate%20natural%20lighting%20artistic%20minimalist"
 
             // 5. Build Firestore payload
             val mealDataMap = mapOf(
                 "recipeName" to mealData.recipeName,
                 "prepTime" to mealData.prepTime,
                 "ingredientsUsed" to mealData.ingredientsUsed,
-                "steps" to mealData.steps
+                "steps" to mealData.steps,
+                "protein" to mealData.protein,
+                "fiber" to mealData.fiber,
+                "carbs" to mealData.carbs,
+                "calories" to mealData.calories,
+                "imageUrl" to generatedImageUrl
             )
 
             val updatePayload = hashMapOf<String, Any>(
@@ -154,18 +169,18 @@ class MealIntelligenceRepository {
                 "timestamp" to FieldValue.serverTimestamp()
             )
 
-            // 6. Write directly to Firestore: freezer_to_feast/app/users/{userId}/daily_meals/{YYYY-MM-DD}
+            // 6. Write directly to Firestore: freezer_to_feast/app/users/{userId}/daily_meals/{dateString}
             Firebase.firestore.collection("freezer_to_feast")
                 .document("app")
                 .collection("users")
                 .document(userId)
                 .collection("daily_meals")
-                .document(currentDate)
+                .document(dateString)
                 .set(updatePayload, SetOptions.merge())
                 .await()
 
             // 7. Emit success
-            emit(Resource.Success(mealData))
+            emit(Resource.Success(mealData.copy(imageUrl = generatedImageUrl)))
 
         } catch (e: IllegalStateException) {
             emit(Resource.Error("Authentication or state error: ${e.localizedMessage}", e))
