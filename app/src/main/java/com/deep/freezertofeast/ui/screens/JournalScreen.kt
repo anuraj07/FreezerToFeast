@@ -95,6 +95,11 @@ fun JournalScreen(
     val pickedImages = remember { mutableStateListOf<Bitmap>() }
     var manualIngredientsText by remember { mutableStateOf("") }
 
+    val isLimitReached = remember(loggedMeals, activeIngredientSlot) {
+        val slot = activeIngredientSlot
+        loggedMeals.size >= 4 && slot != null && !loggedMeals.containsKey(slot)
+    }
+
     // Dialog for adding custom slot
     var showAddSlotDialog by remember { mutableStateOf(false) }
     var newSlotName by remember { mutableStateOf("") }
@@ -898,6 +903,17 @@ fun JournalScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
+                        if (isLimitReached) {
+                            Text(
+                                text = "Daily AI recipe limit reached (4/4). Please check back tomorrow!",
+                                color = Color.Red,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
                         // Dialog CTA buttons
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -928,7 +944,7 @@ fun JournalScreen(
                                     manualIngredientsText = ""
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
-                                enabled = pickedImages.isNotEmpty() || manualIngredientsText.isNotBlank(),
+                                enabled = !isLimitReached && (pickedImages.isNotEmpty() || manualIngredientsText.isNotBlank()),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text(text = "Suggest Recipe", color = SecondaryYellow)

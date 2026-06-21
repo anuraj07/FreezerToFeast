@@ -40,15 +40,24 @@ fun ProfileScreen(
     onSignOut: () -> Unit,
     viewModel: ProfileViewModel = viewModel()
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.loadProfile()
+    }
+
     val name by viewModel.name.collectAsState()
     val selectedDiet by viewModel.selectedDiet.collectAsState()
     val staples by viewModel.staples.collectAsState()
-    val saving by viewModel.saving.collectAsState()
-    val saveSuccess by viewModel.saveSuccess.collectAsState()
+    val palatePreferences by viewModel.palatePreferences.collectAsState()
+    val activePalates by viewModel.activePalates.collectAsState()
+    val activeDays by viewModel.activeDays.collectAsState()
+    val todayAiUsage by viewModel.todayAiUsage.collectAsState()
 
     // Accordion expand states for editing preferences
     var editDietExpanded by remember { mutableStateOf(false) }
     var editStaplesExpanded by remember { mutableStateOf(false) }
+
+    // Text field state for custom palate preference
+    var customPreferenceInput by remember { mutableStateOf("") }
 
     val dietRow1 = listOf("Balanced", "Vegetarian", "Vegan")
     val dietRow2 = listOf("Keto", "High Protein")
@@ -56,6 +65,20 @@ fun ProfileScreen(
     val allPossibleStaples = listOf(
         "Oil", "Atta", "Rice", "Turmeric", "Salt", "Red Chili Powder", "Ghee"
     )
+
+    // Sourcing Purity calculated dynamically based on staples checked
+    val purityPercent = remember(staples) {
+        if (allPossibleStaples.isNotEmpty()) {
+            (staples.size.toFloat() / allPossibleStaples.size.toFloat() * 100).toInt().coerceIn(0, 100)
+        } else {
+            0
+        }
+    }
+
+    // Pantry Health status calculated dynamically
+    val pantryHealthText = remember(staples) {
+        if (staples.size >= 5) "Optimal" else if (staples.size >= 2) "Good" else "Basic"
+    }
 
     Box(
         modifier = Modifier
@@ -129,7 +152,6 @@ fun ProfileScreen(
                         .size(28.dp)
                         .clip(CircleShape)
                         .background(PrimaryGreen)
-                        .clickable { }
                         .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -142,16 +164,16 @@ fun ProfileScreen(
                 }
             }
 
-            // User Info
+            // User Info (Name is dynamically loaded from Google sign in, read-only)
             Text(
-                text = name.ifEmpty { "Alistair Thorne" },
+                text = name.ifEmpty { "Nourished Explorer" },
                 fontFamily = FontFamily.Serif,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = DarkCharcoal
             )
             Text(
-                text = "ELITE MEMBER SINCE 2022",
+                text = "ELITE MEMBER SINCE 2026",
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 color = MutedGreen,
@@ -159,29 +181,7 @@ fun ProfileScreen(
                 modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
             )
 
-            // Name Input field (Fixed visibility issue with white background container)
-            OutlinedTextField(
-                value = name,
-                onValueChange = { viewModel.updateName(it) },
-                label = { Text("Your Name") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PrimaryGreen,
-                    unfocusedBorderColor = OutlineColor,
-                    focusedLabelColor = PrimaryGreen,
-                    unfocusedLabelColor = MutedGreen,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedTextColor = DarkCharcoal,
-                    unfocusedTextColor = DarkCharcoal
-                )
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Nourishment Stats Bento Grid
+            // Dynamic Nourishment Stats Bento Grid
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -209,7 +209,7 @@ fun ProfileScreen(
                         color = PrimaryGreen.copy(alpha = 0.8f)
                     )
                     Text(
-                        text = "94%",
+                        text = "$purityPercent%",
                         fontSize = 24.sp,
                         fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Bold,
@@ -217,7 +217,7 @@ fun ProfileScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     LinearProgressIndicator(
-                        progress = 0.94f,
+                        progress = purityPercent.toFloat() / 100f,
                         color = PrimaryGreen,
                         trackColor = Color.White,
                         modifier = Modifier
@@ -254,7 +254,7 @@ fun ProfileScreen(
                             color = MutedGreen
                         )
                         Text(
-                            text = "28 Days",
+                            text = "$activeDays Days",
                             fontSize = 18.sp,
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Bold,
@@ -292,7 +292,7 @@ fun ProfileScreen(
                             color = SecondaryYellow.copy(alpha = 0.7f)
                         )
                         Text(
-                            text = "Optimal",
+                            text = pantryHealthText,
                             fontSize = 18.sp,
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Bold,
@@ -304,7 +304,6 @@ fun ProfileScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            // Simple overlapping circles placeholder
                             Row {
                                 Box(
                                     modifier = Modifier
@@ -320,7 +319,7 @@ fun ProfileScreen(
                                 )
                             }
                             Text(
-                                text = "+12 tracked",
+                                text = "+${staples.size} tracked",
                                 fontSize = 9.sp,
                                 color = SecondaryYellow,
                                 fontWeight = FontWeight.Medium
@@ -330,9 +329,71 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            // Daily AI Usage Limit Indicator Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = SurfaceContainer.copy(alpha = 0.5f)),
+                border = BorderStroke(1.dp, OutlineColor.copy(alpha = 0.5f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Bolt,
+                                contentDescription = "AI Usage",
+                                tint = PrimaryGreen,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Daily AI Recipe Limit",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = DarkCharcoal
+                            )
+                        }
+                        Text(
+                            text = "$todayAiUsage / 4 recipes",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (todayAiUsage >= 4) Color.Red else PrimaryGreen
+                        )
+                    }
 
-            // Settings List with integrated functional preferences editor
+                    LinearProgressIndicator(
+                        progress = (todayAiUsage.toFloat() / 4f).coerceIn(0f, 1f),
+                        color = if (todayAiUsage >= 4) Color.Red else PrimaryGreen,
+                        trackColor = OutlineColor.copy(alpha = 0.2f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(CircleShape)
+                    )
+
+                    Text(
+                        text = if (todayAiUsage >= 4)
+                            "Daily usage limit reached. Resets tomorrow."
+                        else
+                            "You have ${4 - todayAiUsage} recipe requests remaining today.",
+                        fontSize = 11.sp,
+                        color = DarkCharcoal.copy(alpha = 0.6f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Settings List with dynamic preference editor (Saves automatically on change)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -458,7 +519,7 @@ fun ProfileScreen(
 
                 Divider(color = OutlineColor.copy(alpha = 0.3f))
 
-                // Settings Item 2: Palate Preferences (Accordion for Pantry Staples)
+                // Settings Item 2: Palate Preferences (Staples + Custom palate preferences, checkable)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -480,7 +541,7 @@ fun ProfileScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.RestaurantMenu,
-                                    contentDescription = "Staples icon",
+                                    contentDescription = "Palate preferences icon",
                                     tint = PrimaryGreen,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -493,8 +554,9 @@ fun ProfileScreen(
                                     fontWeight = FontWeight.Medium,
                                     color = DarkCharcoal
                                 )
+                                val totalPreferences = staples.size + palatePreferences.size
                                 Text(
-                                    text = "${staples.size} staples selected",
+                                    text = "$totalPreferences preferences defined",
                                     fontSize = 11.sp,
                                     color = MutedGreen
                                 )
@@ -516,40 +578,173 @@ fun ProfileScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 16.dp, bottom = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            val chunkedStaples = allPossibleStaples.chunked(3)
-                            chunkedStaples.forEach { rowStaples ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    rowStaples.forEach { staple ->
-                                        val isSelected = staples.contains(staple)
-                                        val chipBg = if (isSelected) PrimaryGreen.copy(alpha = 0.1f) else SurfaceContainer
-                                        val checkmark = if (isSelected) "✓ " else ""
+                            // Section A: Foundational Staples
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "FOUNDATIONAL STAPLES",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MutedGreen,
+                                    letterSpacing = 1.sp
+                                )
+                                val chunkedStaples = allPossibleStaples.chunked(3)
+                                chunkedStaples.forEach { rowStaples ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        rowStaples.forEach { staple ->
+                                            val isSelected = staples.contains(staple)
+                                            val chipBg = if (isSelected) PrimaryGreen.copy(alpha = 0.1f) else SurfaceContainer
+                                            val checkmark = if (isSelected) "✓ " else ""
 
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(chipBg)
-                                                .clickable { viewModel.toggleStaple(staple) }
-                                                .padding(vertical = 8.dp, horizontal = 4.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = "$checkmark$staple",
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Medium,
-                                                color = DarkCharcoal
-                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(chipBg)
+                                                    .clickable { viewModel.toggleStaple(staple) }
+                                                    .padding(vertical = 8.dp, horizontal = 4.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "$checkmark$staple",
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = DarkCharcoal
+                                                )
+                                            }
+                                        }
+                                        if (rowStaples.size < 3) {
+                                            repeat(3 - rowStaples.size) {
+                                                Spacer(modifier = Modifier.weight(1f))
+                                            }
                                         }
                                     }
-                                    if (rowStaples.size < 3) {
-                                        repeat(3 - rowStaples.size) {
-                                            Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
+
+                            // Section B: Custom Palate Preferences (Check/Uncheck option + Remove option)
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "CUSTOM PALATE PREFERENCES",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MutedGreen,
+                                    letterSpacing = 1.sp
+                                )
+
+                                if (palatePreferences.isEmpty()) {
+                                    Text(
+                                        text = "No custom palate preferences defined yet.",
+                                        fontSize = 12.sp,
+                                        fontStyle = FontStyle.Italic,
+                                        color = DarkCharcoal.copy(alpha = 0.5f)
+                                    )
+                                } else {
+                                    val chunkedPrefs = palatePreferences.chunked(3)
+                                    chunkedPrefs.forEach { rowPrefs ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            rowPrefs.forEach { pref ->
+                                                val isSelected = activePalates.contains(pref)
+                                                val chipBg = if (isSelected) PrimaryGreen.copy(alpha = 0.1f) else SurfaceContainer
+                                                val checkmark = if (isSelected) "✓ " else ""
+
+                                                Box(
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(chipBg)
+                                                        .clickable { viewModel.toggleActivePalate(pref) }
+                                                        .padding(vertical = 8.dp, horizontal = 6.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.Center
+                                                    ) {
+                                                        Text(
+                                                            text = "$checkmark$pref",
+                                                            fontSize = 11.sp,
+                                                            fontWeight = FontWeight.Medium,
+                                                            color = DarkCharcoal,
+                                                            modifier = Modifier.weight(1f, fill = false),
+                                                            textAlign = TextAlign.Center
+                                                        )
+                                                        Spacer(modifier = Modifier.width(4.dp))
+                                                        Icon(
+                                                            imageVector = Icons.Default.Close,
+                                                            contentDescription = "Remove preference",
+                                                            tint = DarkCharcoal.copy(alpha = 0.5f),
+                                                            modifier = Modifier
+                                                                .size(14.dp)
+                                                                .clickable { viewModel.removePalatePreference(pref) }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            if (rowPrefs.size < 3) {
+                                                repeat(3 - rowPrefs.size) {
+                                                    Spacer(modifier = Modifier.weight(1f))
+                                                }
+                                            }
                                         }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                // Input row to add new palate preference
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    OutlinedTextField(
+                                        value = customPreferenceInput,
+                                        onValueChange = { customPreferenceInput = it },
+                                        placeholder = { Text("e.g. Mild Spicy, Gluten Free") },
+                                        modifier = Modifier.weight(1f),
+                                        singleLine = true,
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = PrimaryGreen,
+                                            unfocusedBorderColor = OutlineColor,
+                                            focusedContainerColor = Color.White,
+                                            unfocusedContainerColor = Color.White,
+                                            focusedTextColor = DarkCharcoal,
+                                            unfocusedTextColor = DarkCharcoal,
+                                            focusedPlaceholderColor = DarkCharcoal.copy(alpha = 0.5f),
+                                            unfocusedPlaceholderColor = DarkCharcoal.copy(alpha = 0.5f)
+                                        )
+                                    )
+                                    IconButton(
+                                        onClick = {
+                                            if (customPreferenceInput.isNotBlank()) {
+                                                viewModel.addPalatePreference(customPreferenceInput)
+                                                customPreferenceInput = ""
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .background(PrimaryGreen, RoundedCornerShape(12.dp))
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "Add custom preference",
+                                            tint = SecondaryYellow
+                                        )
                                     }
                                 }
                             }
@@ -559,7 +754,7 @@ fun ProfileScreen(
 
                 Divider(color = OutlineColor.copy(alpha = 0.3f))
 
-                // Settings Item 3: Subscription Tier (Elite display badge)
+                // Settings Item 3: Subscription Tier (Elite display badge showing coming soon)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -580,7 +775,7 @@ fun ProfileScreen(
                                 contentDescription = "Premium icon",
                                 tint = PrimaryGreen,
                                 modifier = Modifier.size(18.dp)
-                              )
+                            )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -595,19 +790,19 @@ fun ProfileScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(PrimaryGreen)
+                                        .background(OutlineColor)
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "ELITE",
+                                        text = "COMING SOON",
                                         fontSize = 8.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = SecondaryYellow
+                                        color = DarkCharcoal
                                     )
                                 }
                             }
                             Text(
-                                text = "Manage your concierge services and plan",
+                                text = "Coming soon",
                                 fontSize = 11.sp,
                                 color = MutedGreen
                             )
@@ -622,7 +817,7 @@ fun ProfileScreen(
 
                 Divider(color = OutlineColor.copy(alpha = 0.3f))
 
-                // Settings Item 4: Security
+                // Settings Item 4: Security (Showing coming soon)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -652,9 +847,9 @@ fun ProfileScreen(
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = DarkCharcoal
-                                )
+                            )
                             Text(
-                                text = "Biometrics, password, and session privacy",
+                                text = "Coming soon",
                                 fontSize = 11.sp,
                                 color = MutedGreen
                             )
@@ -664,29 +859,6 @@ fun ProfileScreen(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = "Go",
                         tint = OutlineColor
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(36.dp))
-
-            // Save Preferences Button
-            if (saving) {
-                CircularProgressIndicator(color = PrimaryGreen)
-            } else {
-                Button(
-                    onClick = { viewModel.saveProfile() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = "Save Preferences",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = SecondaryYellow
                     )
                 }
             }
