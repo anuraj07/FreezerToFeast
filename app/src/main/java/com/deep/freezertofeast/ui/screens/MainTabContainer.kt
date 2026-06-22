@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,12 +16,14 @@ import com.deep.freezertofeast.PrimaryGreen
 import com.deep.freezertofeast.SecondaryYellow
 import com.deep.freezertofeast.ui.viewmodels.JournalViewModel
 import com.deep.freezertofeast.ui.viewmodels.ProfileViewModel
+import com.deep.freezertofeast.ui.viewmodels.InventoryViewModel
 
 @Composable
 fun MainTabContainer(
     onSignOut: () -> Unit,
     journalViewModel: JournalViewModel = viewModel(),
-    profileViewModel: ProfileViewModel = viewModel()
+    profileViewModel: ProfileViewModel = viewModel(),
+    inventoryViewModel: InventoryViewModel = viewModel()
 ) {
     var currentTab by remember { mutableStateOf("journal") }
 
@@ -44,6 +47,25 @@ fun MainTabContainer(
                         )
                     },
                     label = { Text("Journal") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = PrimaryGreen,
+                        selectedTextColor = PrimaryGreen,
+                        unselectedIconColor = Color(0xFFC6C7BD),
+                        unselectedTextColor = Color(0xFFC6C7BD),
+                        indicatorColor = SecondaryYellow
+                    )
+                )
+
+                NavigationBarItem(
+                    selected = currentTab == "inventory",
+                    onClick = { currentTab = "inventory" },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Inventory,
+                            contentDescription = "Inventory"
+                        )
+                    },
+                    label = { Text("Inventory") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = PrimaryGreen,
                         selectedTextColor = PrimaryGreen,
@@ -86,6 +108,11 @@ fun MainTabContainer(
                         viewModel = journalViewModel
                     )
                 }
+                "inventory" -> {
+                    PantryInventoryScreen(
+                        viewModel = inventoryViewModel
+                    )
+                }
                 "profile" -> {
                     ProfileScreen(
                         onSignOut = onSignOut,
@@ -96,3 +123,4 @@ fun MainTabContainer(
         }
     }
 }
+
